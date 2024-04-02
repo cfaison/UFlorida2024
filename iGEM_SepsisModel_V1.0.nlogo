@@ -6,7 +6,7 @@ to make-bone-marrow
     sprout-bone-marrow-cells 1 [
       set shape "square"
       set size cell-size
-      set color brown + 1
+      set color blue
     ]
   ]
 end
