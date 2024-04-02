@@ -4,9 +4,9 @@ to make-bone-marrow
   clear-all
   ask patches [
     sprout-bone-marrow-cells 1 [
-      set shape "square"
+      set shape "circle"
       set size cell-size
-      set color blue
+      set color brown + 1
     ]
   ]
 end
