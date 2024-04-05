@@ -15,7 +15,6 @@ globals[
 
 
 
-
 to setup
   clear-all
   set num_pathogens 1000
