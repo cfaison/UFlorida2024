@@ -1026,9 +1026,9 @@ WHAT IS IT?
 
 This is a model of the interface between the endothelial cells that line capillaries, and blood-borne inflammatory cells (white blood cell species (WBCs)) and mediators.  It is designed to simulate the processes of the innate inflammatory response (IIR).  The IIR is the component of the immune system that is the initial response to injury/infection, prior to the determination of self/non-self recognition associated with the adaptive immune response (antigen presentation/antibody formation).  Excessive activation of the IIR can lead to the disease process Systemic Inflammatory Response Syndrome (SIRS)/Multiple Organ Failure (MOF)/Sepsis, which is a leading source of morbidity and mortality in the Intensive Care Unit (ICU) environment.  One of the frustrations facing treatment of SIRS/MOF/Sepsis is the difficulty in transferring the vast increases in knowledge regarding the cellular and molecular aspects of the IIR into effective clinical regimes.  This model in intended to demonstrate how information generated from basic science experiments can be translated into a synthetic framework that approximates the behavior seen in the clinical setting (global systemic behavior).
 
-My premise regarding SIRS/MOF/Sepsis is that it is a phase space of the IIR that has only become “uncovered” by improvements in acute resuscitation and organ support over the past half century.  In other words, patients who otherwise would have died acutely of their injuries/infections prior to the ICU era are now being kept alive and as a consequence of this the AIR is now acting beyond its “design parameters,’” with the result that the actions of the AIR are now detrimental to the body.  I presume that incremental increase of the initial perturbation to the system will map out the possible dynamic states that correspond to  observed clinical behaviors.
+My premise regarding SIRS/MOF/Sepsis is that it is a phase space of the IIR that has only become √íuncovered√ì by improvements in acute resuscitation and organ support over the past half century.  In other words, patients who otherwise would have died acutely of their injuries/infections prior to the ICU era are now being kept alive and as a consequence of this the AIR is now acting beyond its √ídesign parameters,√ï√ì with the result that the actions of the AIR are now detrimental to the body.  I presume that incremental increase of the initial perturbation to the system will map out the possible dynamic states that correspond to  observed clinical behaviors.
 
-The topology of the model is a torus, which approximates the internal surface of all the capillary beds in the body.  There is no directional flow, and movement of the WBCs “wraps” at the edges.  The patches are Endothelial Cell (EC) agents, the turtles are the various species of WBCs (PMNs, Monos and T-cells).  There is no tissue differentiation.  For a more complete description of the various agents and variables in the model see Appendix B at the end of this section.
+The topology of the model is a torus, which approximates the internal surface of all the capillary beds in the body.  There is no directional flow, and movement of the WBCs √íwraps√ì at the edges.  The patches are Endothelial Cell (EC) agents, the turtles are the various species of WBCs (PMNs, Monos and T-cells).  There is no tissue differentiation.  For a more complete description of the various agents and variables in the model see Appendix B at the end of this section.
 
 
 HOW IT WORKS
@@ -1082,15 +1082,15 @@ Neutrophils (PMNs)
      The initial number of PMNs is 500.  They are the white turtles.  PMNs in a non-perturbed system last approximately 6 hrs (50 steps).  Agents that simulate bone marrow/PMN progenitor cells replenish the pool of PMNs. A non-perturbed system has a steady state number of PMNs at 500.  In this version of the model progenitor cells are affected by "GCSF" in a forward feedback fashion.
      PMNs are mobile agents.  Since the model does not have directional flow, in a non-perturbed system the PMNs move two grid spaces per step in a random, 360-degree fashion.  However, in perturbed systems the PMNs will follow a gradient of variables that simulate chemotactic factors.  This model uses a combination of "PAF," "endotoxin" and "IL-8" as the PMN chemotactic factors.
      PMNs have a series of actions; all linked to their own agent variables, EC variables and mediator variables.
-1. PMN-roll.  This function represents initial PMN activation and rolling.  The PMNs have an agent variable called "pan-roll."  This is set to 1, representing existing L-Selectin on the surface of PMNs.  The activating variables correspond to endotoxin, PAF and TNF.  If the PMN happens to move over an EC that has been activated such that "ec-roll"=3, then the PMN will halve its movement rate. The PMN also has an agent variable called ‘pan-stick."  This corresponds to CD-11/18 integrens and is initially set to 0. The PMN checks to see if patch variables "TNF" and "PAF" are present, then the PMN will set "pmn-stick" to a value equal to "IL-1."  The PMN will also update "IL-1ra" at + 1.
-2. PMN-stick.  This function represents the next step in PMN adhesion. The PMNs have an agent variable called "pmn-migrate."  This variable determines the ability of the PMN to diapedis.  If the PMN’s "pmn-stick" >= 1 and it happens to move over an EC in which its "ec-stick" >= 100, then the PMN will cease moving. Adhesed PMNs will turn yellow.  The PMN will set "pmn-migrate" equal to "TNF" plus "IL-1" minus "IL-10."  
-3. PMN-migrate.  If the PMN’s "pmn-migrate" is greater than 0, then this PMN will have been considered to have migrated through the EC surface and will execute its next function, PMN-burst.
+1. PMN-roll.  This function represents initial PMN activation and rolling.  The PMNs have an agent variable called "pan-roll."  This is set to 1, representing existing L-Selectin on the surface of PMNs.  The activating variables correspond to endotoxin, PAF and TNF.  If the PMN happens to move over an EC that has been activated such that "ec-roll"=3, then the PMN will halve its movement rate. The PMN also has an agent variable called √îpan-stick."  This corresponds to CD-11/18 integrens and is initially set to 0. The PMN checks to see if patch variables "TNF" and "PAF" are present, then the PMN will set "pmn-stick" to a value equal to "IL-1."  The PMN will also update "IL-1ra" at + 1.
+2. PMN-stick.  This function represents the next step in PMN adhesion. The PMNs have an agent variable called "pmn-migrate."  This variable determines the ability of the PMN to diapedis.  If the PMN√ïs "pmn-stick" >= 1 and it happens to move over an EC in which its "ec-stick" >= 100, then the PMN will cease moving. Adhesed PMNs will turn yellow.  The PMN will set "pmn-migrate" equal to "TNF" plus "IL-1" minus "IL-10."  
+3. PMN-migrate.  If the PMN√ïs "pmn-migrate" is greater than 0, then this PMN will have been considered to have migrated through the EC surface and will execute its next function, PMN-burst.
 4. PMN-burst.  This function simulates PMN respiratory burst and thus its cytotoxic/bactericidal effect.  It does this primarily by updating a patch variable called "cytotox."  In the presented model this represents overall free radical species (subsequent models will differentiate these species).  It is updated at a value of 10 or "TNF," whichever is greater.  "Cytotox" has the following functions:
 1. It reduces "infection" by "cytotox."  This is the bactericidal effect.
 2. It reduces "oxy" by "cytotox."  This is the cytotoxic effect on otherwise undamaged ECs.
 5. The PMN also updates "TNF" and "IL-1" by 1.  
-6. The PMN will also "heal" the EC it happens to be sitting on.  This simulates phagocytosis of bacteria and debris of damaged ECs.  It will set the underlying EC’s "oxy" back to 100 and all its adhesion variables back to baseline.
-7. Finally, PMN’s have a simulated apoptotic function.  The counter that determines its life span is affected by cytokine variables.  The PMN life span is increased by "TNF" and "IFN-g," and decreased by "IL-10."
+6. The PMN will also "heal" the EC it happens to be sitting on.  This simulates phagocytosis of bacteria and debris of damaged ECs.  It will set the underlying EC√ïs "oxy" back to 100 and all its adhesion variables back to baseline.
+7. Finally, PMN√ïs have a simulated apoptotic function.  The counter that determines its life span is affected by cytokine variables.  The PMN life span is increased by "TNF" and "IFN-g," and decreased by "IL-10."
 
 Monocytes/Macrophages (Monos)
      The initial number of Monos is 50. Monos are Green turtles.  Monos in a non-perturbed system last approximately 6 hrs (50 steps).  Agents that simulate bone marrow/mono progenitor cells replenish the pool of Monos. A non-perturbed system has a steady state number of Monos at 50.  This version of the model does not have GMCSF therefore there is no feedback mechanism to increase or decrease Mono production.  
@@ -1100,13 +1100,13 @@ Monocytes/Macrophages (Monos)
 1. "IL-1r" is capped at 100.
 2. "sIL-1r" is the shed form of the receptor, and is produced by Monos. The equation for this is "sIL-1r" + ("IL-1r" / 2).
 3. Monos also produce "IL-1ra" (previously mentioned in "pmn-roll."  It is produced at "IL-1ra" + ("IL-1" / 2).
-4. "IL-1r" determined by the Mono as "IL-1" – "IL-1ra" – "sIL-1r."  This reflects competitive binding between IL-1 and IL-1ra and sIL-1r to IL-1 receptors.
+4. "IL-1r" determined by the Mono as "IL-1" √ê "IL-1ra" √ê "sIL-1r."  This reflects competitive binding between IL-1 and IL-1ra and sIL-1r to IL-1 receptors.
       "TNFr" has the following characteristics, a little more complicated because of its bimodal effect:
 1) "TNFr" is capped at 100.
 2) "sTNFr" is the shed form of the receptor produced by Monos.  The equation for "sTNFr" is "sTNFr" + ("TNFr" / 2).
 3) If "sTNFr" has a relatively low value (<= 100), it increases "TNFr" activity (and thus "TNF" production) as the minimum number between 100 and ("TNF" + "sTNFr").  This reflects the potentiating effect of sTNFr at low concentrations for TNF binding to TNF receptors.
-4) If "sTNFr" is a high number (> 100), then it reduces "TNFr" activity (and thus "TNF" production) as the maximum number between 0 and ("TNF" – "sTNFr") (this is done to prevent negative values).  This reflects competitive binding between TNF and sTNFr for TNF receptors at high levels of sTNFr.
-     The "activation" status is responsible for determining which cytokines and how much they produce each step.  "Activation" is therefore an agent variable that is determined by the relationship of the following patch variables on the given patch: "PAF" + "Endotoxin" + "INF-g" – "IL-10."  
+4) If "sTNFr" is a high number (> 100), then it reduces "TNFr" activity (and thus "TNF" production) as the maximum number between 0 and ("TNF" √ê "sTNFr") (this is done to prevent negative values).  This reflects competitive binding between TNF and sTNFr for TNF receptors at high levels of sTNFr.
+     The "activation" status is responsible for determining which cytokines and how much they produce each step.  "Activation" is therefore an agent variable that is determined by the relationship of the following patch variables on the given patch: "PAF" + "Endotoxin" + "INF-g" √ê "IL-10."  
 If "activation" is greater than 0, then the Monos is thought of as "Pro-inflammatory."  The following functions occur, in the following sequence:
 1. Update "GCSF" by ("endotoxin" + "IL-1" + "TNF" + "INF-g") / 4
 2. Update "IL-8" by "TNF" + "IL-1"
@@ -1155,7 +1155,7 @@ SLIDERS:  There are 3 sliders:
 
 "Inj-number":  This is the amount of initial injury to the system.  It represents the primary independent variable in the model (IIN).
 
-"Mode":  This slider determines which patch variable the patch color is scaled to.  The primary mode is “1,” which is the EC life variable “oxy.”  The other modes are listed below:
+"Mode":  This slider determines which patch variable the patch color is scaled to.  The primary mode is √í1,√ì which is the EC life variable √íoxy.√ì  The other modes are listed below:
 1= Oxy (Injury)
 2= Endotoxin
 3= PAF
@@ -1183,23 +1183,23 @@ SWITCHES:
 
 BASIC OPERATION OF THE MODEL:
 
-Determine the IIN by adjusting the the “Inj-number” slider.
+Determine the IIN by adjusting the the √íInj-number√ì slider.
 
-Press “Setup,” this will reset the model and all the variables except the global variable “loop” (more on this later).
+Press √íSetup,√ì this will reset the model and all the variables except the global variable √íloop√ì (more on this later).
 
 If concurrent graphs are desired, turn the "Graph" switch to "On." (Note, the graphs generated thusly are not the graphs in the paper; those were generated by exporting data collected in the output window).
 
-Press either “Injure-Sterile” or “Injure-Infection” to deliver initial injury.
+Press either √íInjure-Sterile√ì or √íInjure-Infection√ì to deliver initial injury.
 
-Press either “Go." 
+Press either √íGo." 
 
-The model will then run.  EC damage/death will be reflected in Mode=1 as a “blackening” of the affected ECs.  In other modes the color of the patches will reflect the level of the underlying mediator variable.  Of note, when there are active infectious vectors the patches will “flash” grey; this is because the presence of infectious vectors is measured as a patch variable and since the patches will scale only to one variable at a time it will “flash” between the grey color and whatever other color the patch is scaled to.
+The model will then run.  EC damage/death will be reflected in Mode=1 as a √íblackening√ì of the affected ECs.  In other modes the color of the patches will reflect the level of the underlying mediator variable.  Of note, when there are active infectious vectors the patches will √íflash√ì grey; this is because the presence of infectious vectors is measured as a patch variable and since the patches will scale only to one variable at a time it will √íflash√ì between the grey color and whatever other color the patch is scaled to.
 
-“MODE” OF THIS VERSION OF THE MODEL:
+√íMODE√ì OF THIS VERSION OF THE MODEL:
 
-The model is written with the random number generators (RNGs) unseeded.  The model should have the RNGs seeded if one is to plan modifications or run distributions.  The model is not currently set up to run distributions; rather it is set up to produce populations of n=100 runs and then increase the IIN by 50 for another n=100 runs, and so on.  The “n” of the run is reflected by the “loop” variable (which is not reset to 0 with “Setup.”  “Loop” must be manually reset to 0 in the Command Center.
-The model is also set up to run in “infection mode.”  Meaning that repeated loops are reset with initial perturbation “Injure-Infection” in “to go.”  To run in “sterile mode” this command line needs to be changed to “injure-sterile.”
-Output to Output Window is “oxy-deficit,” “total-infection,” and “time” for each loop.  
+The model is written with the random number generators (RNGs) unseeded.  The model should have the RNGs seeded if one is to plan modifications or run distributions.  The model is not currently set up to run distributions; rather it is set up to produce populations of n=100 runs and then increase the IIN by 50 for another n=100 runs, and so on.  The √ín√ì of the run is reflected by the √íloop√ì variable (which is not reset to 0 with √íSetup.√ì  √íLoop√ì must be manually reset to 0 in the Command Center.
+The model is also set up to run in √íinfection mode.√ì  Meaning that repeated loops are reset with initial perturbation √íInjure-Infection√ì in √íto go.√ì  To run in √ísterile mode√ì this command line needs to be changed to √íinjure-sterile.√ì
+Output to Output Window is √íoxy-deficit,√ì √ítotal-infection,√ì and √ítime√ì for each loop.  
 
 RECREATING ASPECTS OF THE PAPER:
 
@@ -1207,22 +1207,22 @@ The following instructions are directed at reproducing the forms of certain runs
 
 Population Runs were made using the base mode presented here.
 
-Distribution Runs:  The RNGs need to be seeded.  In “to go1” instead of increasing the “loop” at the end of one run, the IIN is increased by 50 and the system is restarted.  Output should be modified to record IIN, oxy-deficit, total-infection and time at the end of each run.
+Distribution Runs:  The RNGs need to be seeded.  In √íto go1√ì instead of increasing the √íloop√ì at the end of one run, the IIN is increased by 50 and the system is restarted.  Output should be modified to record IIN, oxy-deficit, total-infection and time at the end of each run.
 
-Individual Behavior Runs:  These are the runs that generate the graphs “Heal,” “Phase I SIRS,” Phase II MOF,” and “Overwhelming Infection/Injury.”  Seed the RNGs, place the Data-collection slider to 1.  Output window will record sequential time points during a single run.
+Individual Behavior Runs:  These are the runs that generate the graphs √íHeal,√ì √íPhase I SIRS,√ì Phase II MOF,√ì and √íOverwhelming Infection/Injury.√ì  Seed the RNGs, place the Data-collection slider to 1.  Output window will record sequential time points during a single run.
 
-Cytokine Profiles:  Use the data-collection slider to 1, un-seed the RNGs, and run the model at a fixed IIN for “n” number of loops.
+Cytokine Profiles:  Use the data-collection slider to 1, un-seed the RNGs, and run the model at a fixed IIN for √ín√ì number of loops.
 
 For simulation of antibiotics/anti-cytokine regimes, see the appendices at the end of this information window.
 
 
 THINGS TO NOTICE/THINGS TO DO:
 
-Notice how the response seems to form an “abcess cavity” around the injury pattern.  System death occurs when this containment is broken/inadequate.
+Notice how the response seems to form an √íabcess cavity√ì around the injury pattern.  System death occurs when this containment is broken/inadequate.
 
-Notice after watching a few runs how you can tell which systems will “live” and which will “die.”  What are the specific tip off to each out come, if any?
+Notice after watching a few runs how you can tell which systems will √ílive√ì and which will √ídie.√ì  What are the specific tip off to each out come, if any?
 
-Notice whether patterns emerge as to whether the forward feedback loops (pro-inflammatory pathways) are driving the ongoing damage, or it is the negative feedback loops (immune suppression) that prevent clearance of “second hits.”
+Notice whether patterns emerge as to whether the forward feedback loops (pro-inflammatory pathways) are driving the ongoing damage, or it is the negative feedback loops (immune suppression) that prevent clearance of √ísecond hits.√ì
 
 Notice if you try to simulate single doses of any anti-mediator therapy how long the effect appears to last (despite the half-life of the drug).  Note that the base model is fairly robust, and this robustness also pertains to its pathologic states.
 
