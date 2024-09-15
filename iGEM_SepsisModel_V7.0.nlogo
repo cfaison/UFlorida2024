@@ -1,5 +1,5 @@
 ; Note:
-;   - 1 tick = 10 minutes
+;   - 1 tick = 1 minutes
 ;   - each patch is defined to ben 1cm x 1cm, and assumed to be 1 cell-radius thick (6.5*10^-3 cm)
 ;       -------------------
 
@@ -7,10 +7,12 @@
 ;----------------------------------------------------------------------------------------
 ;                  ***Breeds***
 ;Leukocytes
+breed [leukocytes leukocyte]
 breed [neutrophils neutrophil]
 breed [natural-killers natural-killer]
 breed [macrophages macrophage]
 breed [Bcells Bcell]
+;this is a comment
 
 ;Cytokines
 breed [pro-inflammatory-cytokines pro-inflammatory-cytokine]
@@ -30,14 +32,23 @@ globals[
   Bcell-rate
   pathogen_strand
   active_antibody
-  system-volume
+  system-volume ; cm^3 or ml
   max-system-cellcount
   max-HSPC-density
+  pro-cytokine-molarity
+  anti-cytokine-molarity
   current-cellcount
+  current-HSPC-count
+  current-differentiated-count
   replication-rate
   crowding-constant
   homeostasis-factor
-  death-rate
+  HSPC-death-rate
+  differentiated-death-rate
+  differentiation-rate
+  pro-cytokine-rate
+  anti-cytokine-rate
+  time-since-infection
 ]
 
 turtles-own [
@@ -62,6 +73,9 @@ patches-own [
   cell-health
   oxygen-level
   HSPC-density
+  differentiated-density
+  pro-cytokine-density
+  anti-cytokine-density
   alive?
 ]
 ;----------------------------------------------------------------------------------------
@@ -77,9 +91,16 @@ to setup
   set max-HSPC-density 5652
   set max-system-cellcount (count patches * max-HSPC-density)
   set current-cellcount (count patches * 565.2) ;1625)
-  set replication-rate (0.80 * (10 ^ (-2)))     ;(3.472 * (10 ^ (-5)))
+  set current-differentiated-count 0
+  set replication-rate  (1.2 / 144)       ;(9.63 * (10 ^ (-4)))     ;(3.472 * (10 ^ (-5)))
   set crowding-constant (0.75 * (10 ^ (-4)))
-  set death-rate ((1 / 360))
+  set HSPC-death-rate ((.002 / 144))
+  set differentiated-death-rate 0.000694
+  set differentiation-rate .1
+  set pro-cytokine-molarity 1.316 * (10 ^ -12)
+  set anti-cytokine-molarity 1.316 * (10 ^ -12)
+  set time-since-infection 0
+
 
   while [current-cellcount > 0][
     ask one-of patches [
@@ -92,15 +113,25 @@ to setup
     ]
   ]
 
+  ask patches[
+    set pro-cytokine-density (pro-cytokine-molarity * (system-volume / count patches) * ((HSPC-density / max-HSPC-density)) * (6.02 * 10 ^ 23))
+    set anti-cytokine-density (anti-cytokine-molarity * (system-volume / count patches) * ((HSPC-density / max-HSPC-density)) * (6.02 * 10 ^ 23))
+  ]
 
 end
 ;----------------------------------------------------------------------------------------
-;                ***Go Function***
-to go
+;                ***Go Functions***
 
+to culture
+  if sum [HSPC-density] of patches >= 1 * max-system-cellcount[
+    ;user-message(word "Cell Culture Complete!")
+    stop
+  ]
 
   ask patches [
-    set pcolor scale-color brown HSPC-density -1000 (max-HSPC-density * 2)
+    if mode = 0 [set pcolor scale-color brown HSPC-density -1000 (max-HSPC-density * 2)]
+    if mode = 1 [set pcolor scale-color blue differentiated-density -1000 (max-HSPC-density * 2)]
+
     if (HSPC-density <= 0)[
       ifelse (count neighbors with [HSPC-density > 30] >= 1)[
         set HSPC-density 10
@@ -108,15 +139,79 @@ to go
         set HSPC-density 0
       ]
     ]
-    if (HSPC-density < max-HSPC-density) and (HSPC-density > 0) [set HSPC-density (HSPC-density + (replication-rate * HSPC-density * homeostasis-factor) - (death-rate * HSPC-density))]
+    if (HSPC-density < max-HSPC-density) and (HSPC-density > 0) [
+      set HSPC-density (HSPC-density + (replication-rate * HSPC-density * homeostasis-factor) - (HSPC-death-rate * HSPC-density))
+    ]
 
-    set homeostasis-factor (1 / (1 + (HSPC-density * crowding-constant * 10)))
+    set homeostasis-factor (1 / (1 + (HSPC-density * crowding-constant)))
+    set pro-cytokine-density (pro-cytokine-molarity * (system-volume / count patches) * (HSPC-density / max-HSPC-density) * (6.02 * 10 ^ 23))
+    set anti-cytokine-density (anti-cytokine-molarity * (system-volume / count patches) * (HSPC-density / max-HSPC-density) * (6.02 * 10 ^ 23))
   ]
 
 
-  set current-cellcount sum [HSPC-density] of patches
+  set current-HSPC-count sum [HSPC-density] of patches
   tick
-  ;export-view (word ticks ".png")
+end
+
+
+
+to differentiate
+  ask patches[
+    ;set HSPC-density (HSPC-density -(differentiated-density * differentiation-rate))
+    set differentiated-density (differentiated-density + (HSPC-density * differentiation-rate * homeostasis-factor) - (differentiated-density * differentiated-death-rate))
+  ]
+
+
+  ask patches [
+    if mode = 0 [set pcolor scale-color brown HSPC-density -1000 (max-HSPC-density * 2)]
+    if mode = 1 [set pcolor scale-color blue differentiated-density -1000 (max-HSPC-density * 250)]
+
+    if (HSPC-density <= 0)[
+      ifelse (count neighbors with [HSPC-density > 30] >= 1)[
+        set HSPC-density 10
+      ][
+        set HSPC-density 0
+      ]
+    ]
+    if (HSPC-density < max-HSPC-density * 1.1) and (HSPC-density > 0) [
+      set HSPC-density (HSPC-density + (replication-rate * HSPC-density * homeostasis-factor * 0) - (HSPC-death-rate * HSPC-density))
+    ]
+
+    set homeostasis-factor (1 / (1 + (HSPC-density * crowding-constant)))
+  ]
+
+
+  ask pathogens[
+    move
+    ask patch-here [
+      set HSPC-density (HSPC-density - 100)
+      set differentiated-density (differentiated-density - 100)
+    ]
+  ]
+
+  set current-HSPC-count sum [HSPC-density] of patches
+  set current-differentiated-count sum [differentiated-density] of patches
+  set current-HSPC-count (current-HSPC-count - current-differentiated-count)
+
+  tick
+end
+
+
+to infect
+  if time-since-infection = 0[
+    let num random (infection_intensity * 10)
+    create-pathogens (1.05 ^ (infection-intensity))[
+      setxy (plate_width / 2) (plate_width / 2)
+      ;random-position
+      set color num
+      set shape "circle"
+      set size (molecule-size * 0.8)
+      set pathogen-age random 50
+      set lock num
+      set pathogen_strand num
+    ]
+    set time-since-infection 0
+  ]
 end
 ;----------------------------------------------------------------------------------------
 ;               ***General Functions for all turtles***
@@ -130,11 +225,6 @@ to random-position
   setxy (min-pxcor + random-float (max-pxcor * 2))
         (min-pycor + random-float (max-pycor * 2))
 end
-
-
-
-
-
 @#$#@#$#@
 GRAPHICS-WINDOW
 175
@@ -143,7 +233,7 @@ GRAPHICS-WINDOW
 629
 -1
 -1
-18.75
+24.0
 1
 10
 1
@@ -154,20 +244,20 @@ GRAPHICS-WINDOW
 1
 1
 0
-31
+24
 0
-31
+24
 1
 1
 1
 ticks
-30.0
+50.0
 
 BUTTON
 45
-20
-142
-53
+25
+155
+60
 Setup
 setup
 NIL
@@ -176,23 +266,6 @@ T
 OBSERVER
 NIL
 S
-NIL
-NIL
-1
-
-BUTTON
-45
-115
-145
-150
-Go
-go
-T
-1
-T
-OBSERVER
-NIL
-G
 NIL
 NIL
 1
@@ -228,15 +301,15 @@ NIL
 HORIZONTAL
 
 SLIDER
-0
-310
+5
 165
-343
+170
+198
 plate_width
 plate_width
 1
 50
-32.0
+25.0
 1
 1
 NIL
@@ -244,9 +317,9 @@ HORIZONTAL
 
 PLOT
 865
-290
+355
 1295
-430
+550
 Relative Concentrations
 NIL
 NIL
@@ -260,34 +333,15 @@ true
 PENS
 "B-Cells" 1.0 0 -8630108 true "" "plot count (Bcells)"
 "Pathogens" 1.0 0 -16777216 true "" "plot count pathogens"
-"Anti-Cytokines" 1.0 0 -13345367 true "" "plot count anti-inflammatory-cytokines"
-"Pro-Cytokines" 1.0 0 -2674135 true "" "plot count pro-inflammatory-cytokines"
+"Anti-Cytokines" 1.0 0 -13345367 true "" "plot sum [anti-cytokine-density] of patches"
+"Pro-Cytokines" 1.0 0 -2674135 true "" "plot sum [pro-cytokine-density] of patches"
 "Neutrophils" 1.0 0 -4539718 true "" "plot count neutrophils"
 
-PLOT
-865
-445
-1295
-565
-Oxy Plot
-NIL
-NIL
-0.0
-10.0
-0.0
-10.0
-true
-true
-"" ""
-PENS
-"Unactivated Bcells" 1.0 0 -10899396 true "" "plot count (Bcells with [has-key = 0])"
-"Active Bcells" 1.0 0 -2674135 true "" "plot count (Bcells with [has-key = 1])"
-
 SLIDER
 0
-445
+585
 165
-478
+618
 init_num_neutrophils
 init_num_neutrophils
 0
@@ -300,9 +354,9 @@ HORIZONTAL
 
 SLIDER
 0
-400
+555
 165
-433
+588
 Bcell_levels
 Bcell_levels
 0
@@ -312,29 +366,12 @@ Bcell_levels
 1
 NIL
 HORIZONTAL
-
-BUTTON
-45
-160
-145
-195
-Go Once
-go
-NIL
-1
-T
-OBSERVER
-NIL
-1
-NIL
-NIL
-1
 
 PLOT
 865
 110
 1295
-270
+345
 HSPC-Density
 Time
 Density
@@ -346,19 +383,100 @@ true
 true
 "" ""
 PENS
-"Cell Count" 1.0 0 -16777216 true "" "plot sum [HSPC-density] of patches"
-"Carrying Capacity" 1.0 0 -3026479 true "" "plot max-system-cellcount"
+"iPSC" 1.0 0 -2674135 true "" "plot sum [HSPC-density] of patches"
+"Differentiated" 1.0 0 -13345367 true "" "plot (current-differentiated-count * 0.1)"
 
 SLIDER
 0
-355
+525
 165
-388
+558
 infection_intensity
 infection_intensity
 0
 100
 0.0
+10
+1
+NIL
+HORIZONTAL
+
+BUTTON
+45
+65
+155
+98
+Culture Cells
+culture
+T
+1
+T
+OBSERVER
+NIL
+C
+NIL
+NIL
+1
+
+BUTTON
+45
+105
+155
+138
+Differentiate
+differentiate
+T
+1
+T
+OBSERVER
+NIL
+D
+NIL
+NIL
+1
+
+SLIDER
+0
+215
+172
+248
+mode
+mode
+0
+2
+0.0
+1
+1
+NIL
+HORIZONTAL
+
+BUTTON
+70
+270
+132
+303
+Infect
+infect
+NIL
+1
+T
+OBSERVER
+NIL
+I
+NIL
+NIL
+1
+
+SLIDER
+0
+320
+172
+353
+infection-intensity
+infection-intensity
+0
+100
+50.0
 10
 1
 NIL
@@ -815,6 +933,14 @@ infect</setup>
     <steppedValueSet variable="infection_intensity" first="0" step="10" last="100"/>
     <enumeratedValueSet variable="plate_width">
       <value value="35"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="Time to 99% confluence" repetitions="100" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go</go>
+    <timeLimit steps="1000000"/>
+    <enumeratedValueSet variable="plate_width">
+      <value value="26"/>
     </enumeratedValueSet>
   </experiment>
 </experiments>
